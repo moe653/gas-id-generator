@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>コード生成フォーム</title>
+        <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            margin-top: 80px;
+        }
+        input {
+            padding: 8px;
+            font-size: 16px;
+            width: 300px;
+        }
+        button {
+            margin-left: 8px;
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 25px;
+            font-size: 18px;
+            color: #000000;
+        }
+        #copyBtn {
+            margin-top: 10px;
+            padding: 6px 14px;
+            font-size: 15px;
+            background-color: #2b6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: none;
+        }
+        #copyBtn:hover {
+            background-color: #1a4;
+        }
+        </style>
+    </head>
+    <body>
+        <h1>ユーザーコード生成フォーム</h1>
+        <p>あなたの学籍番号を入力して「送信」または Enter を押してください．</p>
+
+        <input id="userInput" type="text" placeholder="例：s1234567" maxlength="15"/>
+        <button onclick="sendInput()">送信</button>
+
+        <div id="result"></div>
+        <button id="copyBtn" onclick="copyCode()">コピー</button>
+
+
+        
+
+        <script>
+        // --- Enterキーで送信（IME変換中は無視） ---
+        const inputElem = document.getElementById("userInput");
+        let isComposing = false;
+
+        inputElem.addEventListener("compositionstart", () => {
+            isComposing = true; // 変換開始
+        });
+
+        inputElem.addEventListener("compositionend", () => {
+            isComposing = false; // 変換確定
+        });
+
+        inputElem.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !isComposing) {
+            sendInput();
+            }
+        });
+
+        function sendInput() {
+            const value = inputElem.value.trim();
+            if (!value) {
+            alert("学籍番号を入力してください．");
+            return;
+            }
+
+            document.getElementById("result").innerText = "処理中...";
+            document.getElementById("copyBtn").style.display = "none";
+
+            google.script.run
+            .withSuccessHandler((result) => {
+                document.getElementById("result").innerHTML =
+                `あなたのコードは <b id="code">${result}</b> です．<br>` +
+                `このコードをコピーしてアンケートに貼り付けてください．`;
+                document.getElementById("copyBtn").style.display = "inline-block";
+            })
+
+            .withFailureHandler((err) => {
+                document.getElementById("result").innerText = `エラー：${err.message}`;
+            })
+            .getOrCreateCode(value);
+        }
+
+        function copyCode() {
+            const codeElem = document.getElementById("code");
+            if (codeElem) {
+            const code = codeElem.innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                alert(`コードをコピーしました\nあなたのコードは${code}です\nこのコードをアンケートの「コード入力欄」に入力してください`);
+            });
+            }
+        }
+        </script>
+    </body>
+</html>
