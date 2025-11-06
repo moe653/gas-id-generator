@@ -4,7 +4,7 @@ function doGet() {
 
 function getOrCreateCode(userInput) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    const lastRow = sheet.getLastRow();
+    let lastRow = sheet.getLastRow();
 
     // --- 入力値を半角英数字に統一 ---
     userInput = String(userInput)
@@ -37,14 +37,22 @@ function getOrCreateCode(userInput) {
     } while (bValues.includes(newCode));
 
     // --- 3. 新しい行にA列とB列を書き込む ---
-    const newRow = lastRow + 1;
-    writeToCell(newRow, 1, userInput);
-    writeToCell(newRow, 2, newCode);
+    const lock = LockService.getDocumentLock();
+    if (lock.tryLock(1 * 1000)) {
+        lastRow = sheet.getLastRow();
+        const newRow = lastRow + 1;
+        writeToRow(newRow, [userInput, newCode]);
+
+
+        // ちょっと待つ
+        Utilities.sleep(5 * 1000);
+        
+        // ロック開放
+        lock.releaseLock();
+    }
 
     return newCode;
 }
-
-
 
 // --- テスト関数 ---
 function test_getOrCreateCode() {

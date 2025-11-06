@@ -1,5 +1,6 @@
-function writeToCell(row, column, value) {
+function writeToRow(row, values) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    sheet.getRange(row, column).setValue(value);
-    Logger.log(`行 ${row} 列 ${column} に値 '${value}' を書き込みました`);
+    // values は配列で渡す（例: ["input", "code"]）
+    sheet.getRange(row, 1, 1, values.length).setValues([values]);
+    Logger.log(`行 ${row} に値 ${JSON.stringify(values)} を書き込みました`);
 }
